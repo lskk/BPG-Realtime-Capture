@@ -109,7 +109,7 @@ public class Capture extends AppCompatActivity implements SurfaceHolder.Callback
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         try {
-            camera = Camera.open();
+            camera = camera.open();
             camera.setDisplayOrientation(90);
         } catch (RuntimeException e) {
             System.err.println(e);
