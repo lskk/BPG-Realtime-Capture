@@ -11,6 +11,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
+import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -24,6 +26,9 @@ public class Capture extends AppCompatActivity implements SurfaceHolder.Callback
     private Camera.PictureCallback jpegCallback;
     private String fileName;
     private Bitmap mBitmapToSave;
+    private Camera camera;
+    private Camera.PictureCallback rawCallback;
+    private Camera.ShutterCallback shutterCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +38,11 @@ public class Capture extends AppCompatActivity implements SurfaceHolder.Callback
         setSupportActionBar(toolbar);
 
         bindXml();
+        try {
+            captureImage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -45,7 +55,7 @@ public class Capture extends AppCompatActivity implements SurfaceHolder.Callback
             public void onPictureTaken(byte[] data, Camera camera) {
                 FileOutputStream outStream = null;
                 try {
-                    fileName = String.format("/sdcard/DCIM/%d.jpg", System.currentTimeMillis());
+                    fileName = String.format(ApplicationConstants.DIRECTORY_FILE_NAME, System.currentTimeMillis());
                     outStream = new FileOutputStream(fileName);
                     outStream.write(data);
                     outStream.close();
@@ -58,7 +68,7 @@ public class Capture extends AppCompatActivity implements SurfaceHolder.Callback
                 }
                 Toast.makeText(getApplicationContext(), "Picture Saved", Toast.LENGTH_LONG).show();
 
-            //    refreshCamera();
+                refreshCamera();
 
                 File imagefile = new File(fileName);
                 FileInputStream fis = null;
@@ -74,18 +84,63 @@ public class Capture extends AppCompatActivity implements SurfaceHolder.Callback
 
     }
 
+    public void captureImage() throws IOException {
+
+        camera.takePicture(shutterCallback, rawCallback, jpegCallback);
+    }
+
+    public void refreshCamera() {
+        if (surfaceHolder.getSurface() == null) {
+            return;
+        }
+        try {
+            camera.stopPreview();
+        } catch (Exception e) {
+        }
+        try {
+            camera.setPreviewDisplay(surfaceHolder);
+            camera.startPreview();
+        } catch (Exception e) {
+
+        }
+    }
+    
+
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-
+        try {
+            camera = Camera.open();
+            camera.setDisplayOrientation(90);
+        } catch (RuntimeException e) {
+            System.err.println(e);
+            return;
+        }
+        Camera.Parameters param;
+        param = camera.getParameters();
+        param.setPreviewSize(352, 288);
+        camera.setParameters(param);
+        try {
+            // The Surface has been created, now tell the camera where to draw
+            // the preview.
+            camera.setPreviewDisplay(surfaceHolder);
+            camera.startPreview();
+        } catch (Exception e) {
+            // check for exceptions
+            System.err.println(e);
+            return;
+        }
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
+        refreshCamera();
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+        // stop preview and release camera
+        camera.stopPreview();
+        camera.release();
+        camera = null;
     }
 }
