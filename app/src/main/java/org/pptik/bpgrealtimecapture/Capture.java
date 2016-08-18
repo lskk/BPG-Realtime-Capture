@@ -1,146 +1,100 @@
 package org.pptik.bpgrealtimecapture;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import java.io.File;
+import java.io.FileOutputStream;
 import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
-import android.widget.Toast;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
 
-import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-public class Capture extends AppCompatActivity implements SurfaceHolder.Callback {
-
-    private SurfaceView surfaceView;
-    private SurfaceHolder surfaceHolder;
-    private Camera.PictureCallback jpegCallback;
-    private String fileName;
-    private Bitmap mBitmapToSave;
+public class Capture extends AppCompatActivity {
     private Camera camera;
-    private Camera.PictureCallback rawCallback;
-    private Camera.ShutterCallback shutterCallback;
+    Button takePictureBtn;
+    private String TAG = this.getClass().getSimpleName();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_capture);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        bindXml();
-        try {
-            captureImage();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-    }
-
-    private void bindXml() {
-        surfaceView = (SurfaceView)findViewById(R.id.surfaceView);
-        surfaceHolder = surfaceView.getHolder();
-        surfaceHolder.addCallback(this);
-        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        jpegCallback = new Camera.PictureCallback() {
-            public void onPictureTaken(byte[] data, Camera camera) {
-                FileOutputStream outStream = null;
-                try {
-                    fileName = String.format(ApplicationConstants.DIRECTORY_FILE_NAME, System.currentTimeMillis());
-                    outStream = new FileOutputStream(fileName);
-                    outStream.write(data);
-                    outStream.close();
-                    Log.d("Log", "onPictureTaken - wrote bytes: " + data.length);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                }
-                Toast.makeText(getApplicationContext(), "Picture Saved", Toast.LENGTH_LONG).show();
-
-                refreshCamera();
-
-                File imagefile = new File(fileName);
-                FileInputStream fis = null;
-                try {
-                    fis = new FileInputStream(imagefile);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-                mBitmapToSave = BitmapFactory.decodeStream(fis);
+        takePictureBtn = (Button)findViewById(R.id.takepicture);
+        takePictureBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                takepicture();
             }
-        };
+        });
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        surfaceView.getHolder().setFixedSize(176, 144);
+        surfaceView.getHolder().setKeepScreenOn(true);
+        surfaceView.getHolder().addCallback(new SurfaceCallback());
+    }
+
+    public void takepicture(){
+        camera.takePicture(null, null, new MyPictureCallback());
+      //  camera.autoFocus(null);
+    }
+
+    private final class MyPictureCallback implements PictureCallback{
+        public void onPictureTaken(byte[] data, Camera camera) {
+            try {
+                File jpgFile = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis()+".jpg");
+                FileOutputStream outStream = new FileOutputStream(jpgFile);
+                outStream.write(data);
+                outStream.close();
+                Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
+                Log.i(TAG, "is file exist : "+String.valueOf(jpgFile.exists()));
+                camera.startPreview();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
-    public void captureImage() throws IOException {
-
-        camera.takePicture(shutterCallback, rawCallback, jpegCallback);
-    }
-
-    public void refreshCamera() {
-        if (surfaceHolder.getSurface() == null) {
-            return;
+    private final class SurfaceCallback implements Callback{
+        public void surfaceCreated(SurfaceHolder holder) {
+            try{
+                camera = Camera.open();
+                camera.setDisplayOrientation(90);
+                Camera.Parameters parameters = camera.getParameters();
+                Log.i(TAG, parameters.flatten());
+                parameters.setPreviewSize(800, 480);
+                parameters.setPreviewFrameRate(5);
+                parameters.setPictureSize(1024,768);
+                parameters.setJpegQuality(80);
+                camera.setParameters(parameters);
+                camera.setPreviewDisplay(holder);
+                camera.startPreview();
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        try {
-            camera.stopPreview();
-        } catch (Exception e) {
-        }
-        try {
-            camera.setPreviewDisplay(surfaceHolder);
-            camera.startPreview();
-        } catch (Exception e) {
 
+        public void surfaceChanged(SurfaceHolder holder, int format, int width,int height) {
         }
-    }
-    
 
-    @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        try {
-            camera = camera.open();
-            camera.setDisplayOrientation(90);
-        } catch (RuntimeException e) {
-            System.err.println(e);
-            return;
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            if(camera!=null){
+                camera.release();
+                camera = null;
+            }
         }
-        Camera.Parameters param;
-        param = camera.getParameters();
-        param.setPreviewSize(352, 288);
-        camera.setParameters(param);
-        try {
-            // The Surface has been created, now tell the camera where to draw
-            // the preview.
-            camera.setPreviewDisplay(surfaceHolder);
-            camera.startPreview();
-        } catch (Exception e) {
-            // check for exceptions
-            System.err.println(e);
-            return;
-        }
-    }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-        refreshCamera();
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        // stop preview and release camera
-        camera.stopPreview();
-        camera.release();
-        camera = null;
     }
 }
