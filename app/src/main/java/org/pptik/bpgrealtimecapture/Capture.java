@@ -2,12 +2,16 @@ package org.pptik.bpgrealtimecapture;
 
 import java.io.File;
 import java.io.FileOutputStream;
+
+import android.app.Activity;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
@@ -16,7 +20,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
-public class Capture extends AppCompatActivity {
+public class Capture extends Activity {
     private Camera camera;
     Button takePictureBtn;
     private String TAG = this.getClass().getSimpleName();
@@ -28,8 +32,11 @@ public class Capture extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        setContentView(R.layout.activity_capture);
+        setContentView(R.layout.content_capture);
 
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
 
         takePictureBtn = (Button)findViewById(R.id.takepicture);
         takePictureBtn.setOnClickListener(new View.OnClickListener() {
@@ -40,7 +47,7 @@ public class Capture extends AppCompatActivity {
         });
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        surfaceView.getHolder().setFixedSize(176, 144);
+        surfaceView.getHolder().setFixedSize(size.x, size.y);
         surfaceView.getHolder().setKeepScreenOn(true);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
     }
@@ -71,7 +78,7 @@ public class Capture extends AppCompatActivity {
         public void surfaceCreated(SurfaceHolder holder) {
             try{
                 camera = Camera.open();
-                camera.setDisplayOrientation(90);
+            //    camera.setDisplayOrientation(90);
                 Camera.Parameters parameters = camera.getParameters();
                 Log.i(TAG, parameters.flatten());
                 parameters.setPreviewSize(800, 480);
