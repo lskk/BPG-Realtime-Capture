@@ -8,9 +8,9 @@ import io.realm.annotations.PrimaryKey;
  */
 public class SavedFile extends RealmObject {
     @PrimaryKey
-    public int id;
-    public String filename;
-    public String path;
+    private int id;
+    private String filename;
+    private String path;
 
 
     public int getId() {

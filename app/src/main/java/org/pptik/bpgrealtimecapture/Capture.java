@@ -19,11 +19,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import org.pptik.bpgrealtimecapture.helper.RealmHelper;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
 public class Capture extends Activity implements Runnable{
     private Camera camera;
-    Button takePictureBtn;
+    private RealmHelper realmHelper;
     private String TAG = this.getClass().getSimpleName();
     private Timer timer;
 
@@ -41,6 +42,7 @@ public class Capture extends Activity implements Runnable{
         surfaceView.getHolder().setFixedSize(176, 144);
         surfaceView.getHolder().setKeepScreenOn(true);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
+        realmHelper = new RealmHelper(Capture.this);
 
         //--- BUILD TIMER ---//
         timer = new Timer();
@@ -62,12 +64,14 @@ public class Capture extends Activity implements Runnable{
             try {
                 File folder = new File(Environment.getExternalStorageDirectory() + ApplicationConstants.DIRECTORY_FILE_NAME);
                 File jpgFile = null;
+                String filename = "";
                 boolean success = true;
                 if (!folder.exists()) {
                     success = folder.mkdir();
                 }
                 if (success) {
-                    jpgFile = new File(folder, System.currentTimeMillis()+".jpg");
+                    filename = System.currentTimeMillis()+".jpg";
+                    jpgFile = new File(folder, filename);
                 } else {
                     // TO-DO: Catch some crash
                 }
@@ -75,8 +79,9 @@ public class Capture extends Activity implements Runnable{
                 FileOutputStream outStream = new FileOutputStream(jpgFile);
                 outStream.write(data);
                 outStream.close();
+                Log.i(TAG, "Success save file : "+String.valueOf(jpgFile.exists()));
                 Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
-                Log.i(TAG, "is file exist : "+String.valueOf(jpgFile.exists()));
+                realmHelper.addFile(filename, jpgFile.getAbsolutePath());
                 camera.startPreview();
             } catch (Exception e) {
                 e.printStackTrace();
