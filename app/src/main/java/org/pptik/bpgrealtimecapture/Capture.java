@@ -33,11 +33,6 @@ public class Capture extends Activity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.content_capture);
-
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-
         takePictureBtn = (Button)findViewById(R.id.takepicture);
         takePictureBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,7 +42,7 @@ public class Capture extends Activity {
         });
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        surfaceView.getHolder().setFixedSize(size.x, size.y);
+        surfaceView.getHolder().setFixedSize(176, 144);
         surfaceView.getHolder().setKeepScreenOn(true);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
     }
@@ -78,13 +73,13 @@ public class Capture extends Activity {
         public void surfaceCreated(SurfaceHolder holder) {
             try{
                 camera = Camera.open();
-            //    camera.setDisplayOrientation(90);
                 Camera.Parameters parameters = camera.getParameters();
                 Log.i(TAG, parameters.flatten());
                 parameters.setPreviewSize(800, 480);
                 parameters.setPreviewFrameRate(5);
                 parameters.setPictureSize(1024,768);
                 parameters.setJpegQuality(80);
+                parameters.setRotation(0);
                 camera.setParameters(parameters);
                 camera.setPreviewDisplay(holder);
                 camera.startPreview();
