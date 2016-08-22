@@ -2,8 +2,11 @@ package org.pptik.bpgrealtimecapture;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import android.app.Activity;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import android.hardware.Camera;
+import android.app.Activity;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,10 +21,11 @@ import android.widget.Button;
 
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
-public class Capture extends Activity {
+public class Capture extends Activity implements Runnable{
     private Camera camera;
     Button takePictureBtn;
     private String TAG = this.getClass().getSimpleName();
+    private Timer timer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,6 +47,16 @@ public class Capture extends Activity {
         surfaceView.getHolder().setFixedSize(176, 144);
         surfaceView.getHolder().setKeepScreenOn(true);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
+
+        //--- BUILD TIMER ---//
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Capture.this.run();
+            }
+        }, 5000, 5000);
+
     }
 
     public void takepicture(){
@@ -61,7 +75,7 @@ public class Capture extends Activity {
                 if (success) {
                     jpgFile = new File(folder, System.currentTimeMillis()+".jpg");
                 } else {
-                    // TO-DO: Cath some crash
+                    // TO-DO: Catch some crash
                 }
 
                 FileOutputStream outStream = new FileOutputStream(jpgFile);
@@ -85,8 +99,10 @@ public class Capture extends Activity {
                 Log.i(TAG, parameters.flatten());
                 parameters.setPreviewSize(800, 480);
                 parameters.setPreviewFrameRate(5);
-                parameters.setPictureSize(1024,768);
-                parameters.setJpegQuality(80);
+                List<Camera.Size> ss = parameters.getSupportedPictureSizes();
+                Camera.Size s = ss.get(0);
+                parameters.setPictureSize(s.width, s.height);
+                parameters.setJpegQuality(100);
                 parameters.setRotation(0);
                 camera.setParameters(parameters);
                 camera.setPreviewDisplay(holder);
@@ -107,4 +123,17 @@ public class Capture extends Activity {
         }
 
     }
+
+    @Override
+    protected  void onDestroy(){
+        super.onDestroy();
+        timer.cancel();
+    }
+
+
+    @Override
+    public void run() {
+        takepicture();
+    }
+
 }
