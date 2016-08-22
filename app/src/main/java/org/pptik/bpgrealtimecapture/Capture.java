@@ -2,16 +2,12 @@ package org.pptik.bpgrealtimecapture;
 
 import java.io.File;
 import java.io.FileOutputStream;
-
 import android.app.Activity;
-import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
@@ -19,6 +15,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+
+import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
 public class Capture extends Activity {
     private Camera camera;
@@ -49,13 +47,23 @@ public class Capture extends Activity {
 
     public void takepicture(){
         camera.takePicture(null, null, new MyPictureCallback());
-      //  camera.autoFocus(null);
     }
 
     private final class MyPictureCallback implements PictureCallback{
         public void onPictureTaken(byte[] data, Camera camera) {
             try {
-                File jpgFile = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis()+".jpg");
+                File folder = new File(Environment.getExternalStorageDirectory() + ApplicationConstants.DIRECTORY_FILE_NAME);
+                File jpgFile = null;
+                boolean success = true;
+                if (!folder.exists()) {
+                    success = folder.mkdir();
+                }
+                if (success) {
+                    jpgFile = new File(folder, System.currentTimeMillis()+".jpg");
+                } else {
+                    // TO-DO: Cath some crash
+                }
+
                 FileOutputStream outStream = new FileOutputStream(jpgFile);
                 outStream.write(data);
                 outStream.close();
