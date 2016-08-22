@@ -35,13 +35,7 @@ public class Capture extends Activity implements Runnable{
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.content_capture);
-        takePictureBtn = (Button)findViewById(R.id.takepicture);
-        takePictureBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                takepicture();
-            }
-        });
+
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         surfaceView.getHolder().setFixedSize(176, 144);
