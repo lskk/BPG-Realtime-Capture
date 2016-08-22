@@ -27,6 +27,7 @@ public class Capture extends Activity implements Runnable{
     private RealmHelper realmHelper;
     private String TAG = this.getClass().getSimpleName();
     private Timer timer;
+    private boolean isSavedSuccess = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,9 +80,12 @@ public class Capture extends Activity implements Runnable{
                 FileOutputStream outStream = new FileOutputStream(jpgFile);
                 outStream.write(data);
                 outStream.close();
-                Log.i(TAG, "Success save file : "+String.valueOf(jpgFile.exists()));
+                isSavedSuccess = jpgFile.exists();
+                Log.i(TAG, "Success save file : "+isSavedSuccess);
                 Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
-                realmHelper.addFile(filename, jpgFile.getAbsolutePath());
+                if(isSavedSuccess) {
+                    realmHelper.addFile(filename, jpgFile.getAbsolutePath());
+                }
                 camera.startPreview();
             } catch (Exception e) {
                 e.printStackTrace();
