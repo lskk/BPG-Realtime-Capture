@@ -5,4 +5,5 @@ package org.pptik.bpgrealtimecapture.setup;
  */
 public class ApplicationConstants {
     public static final String DIRECTORY_FILE_NAME = "/BGP Pictures";
+    public static final String PREFS_FTP_HOST_NAME = "host_pref";
 }

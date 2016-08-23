@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="FTP Settings">
+
+        <EditTextPreference
+            android:key="host_pref"
+            android:title="Host"
+            android:summary="Set ftp hots for image storing"
+            android:dialogTitle="Set Host : " />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,5 +1,6 @@
 package org.pptik.bpgrealtimecapture;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -30,7 +31,7 @@ public class Main extends AppCompatActivity {
             Log.i(TAG, "id : "+data.get(i).getId()+", Filename : "+data.get(i).getFilename()+", Path : "+data.get(i).getPath());
         }
 
-        // startActivity(new Intent(this, Capture.class));
+        //startActivity(new Intent(this, Capture.class));
     }
 
     @Override
@@ -44,6 +45,7 @@ public class Main extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, Settings.class));
             return true;
         }
 
