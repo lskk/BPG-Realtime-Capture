@@ -14,6 +14,7 @@ import android.util.Log;
 /**
  * Created by hynra on 8/23/16.
  */
+
 public class FtpHelper {
     private String TAG = this.getClass().getSimpleName();
     public FTPClient mFTPClient = null;

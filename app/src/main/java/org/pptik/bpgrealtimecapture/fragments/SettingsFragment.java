@@ -93,8 +93,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                //code for what you want it to do
-             //   connectToFTPAddress();
+
                 return false;
             }
         });
