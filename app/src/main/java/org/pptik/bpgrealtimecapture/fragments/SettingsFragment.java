@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -46,6 +47,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         Preference eHost = findPreference(ApplicationConstants.PREFS_FTP_HOST_NAME);
         Preference eUser = findPreference(ApplicationConstants.PREFS_FTP_USER_NAME);
         Preference ePass = findPreference(ApplicationConstants.PREFS_FTP_PASSWORD);
+        Preference ePort = findPreference(ApplicationConstants.PREFS_FTP_PORT);
 
         Log.i(TAG, "curr host : "+sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
                 ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
@@ -54,12 +56,17 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         Log.i(TAG, "curr Pass : "+sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
                 ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
 
+        Log.i(TAG, "curr port : "+sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PORT,
+                ApplicationConstants.PREFS_PORT_DEFAULT_SUMMARY));
+
         eHost.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
                 ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
         eUser.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME,
                 ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
         ePass.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
                 ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
+        ePort.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PORT,
+                ApplicationConstants.PREFS_PORT_DEFAULT_SUMMARY));
 
         if(!sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
                 ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)){
@@ -78,22 +85,28 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     }
 
     public void connectToFTPAddress() {
-        Log.i(TAG, "START CHECK");
-        final String host = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, "");
-        final String username = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, "");
-        final String password = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, "");
-        new Thread(new Runnable() {
-            public void run() {
-                boolean status = false;
-                status = ftpHelper.ftpConnect(host, username, password, 21);
-                if (status == true) {
-                    Log.d(TAG, "Connection Success");
-                } else {
-                    Log.d(TAG, "Connection failed");
+        if(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY)
+                || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY)
+                || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)
+                ){
+            Snackbar.make(getView(), "Your FTP Setup is invalid, check again!", Snackbar.LENGTH_LONG).show();
+        }else {
+            final String host = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, "");
+            final String username = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, "");
+            final String password = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, "");
+            final int port = sharedPreferences.getInt(ApplicationConstants.PREFS_FTP_PORT, 21);
+            new Thread(new Runnable() {
+                public void run() {
+                    boolean status = false;
+                    status = ftpHelper.ftpConnect(host, username, password, port);
+                    if (status == true) {
+                        Log.d(TAG, "Connection Success");
+                    } else {
+                        Log.d(TAG, "Connection failed");
+                    }
                 }
-            }
-        }).start();
-
+            }).start();
+        }
     }
 
     @Override
