@@ -1,5 +1,6 @@
 package org.pptik.bpgrealtimecapture.fragments;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import org.pptik.bpgrealtimecapture.R;
+import org.pptik.bpgrealtimecapture.ftp.FtpHelper;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
 /**
@@ -21,6 +23,11 @@ import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 
     private String TAG = this.getClass().getSimpleName();
+    private FtpHelper ftpHelper;
+    private Context context;
+    private SharedPreferences sharedPreferences;
+    Preference button;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +37,11 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     @Override
     public void onStart() {
         super.onStart();
-        SharedPreferences sharedPreferences = getPreferenceManager().getSharedPreferences();
+
+        context = getActivity();
+        sharedPreferences = getPreferenceManager().getSharedPreferences();
+        ftpHelper = new FtpHelper();
+
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         Preference eHost = findPreference(ApplicationConstants.PREFS_FTP_HOST_NAME);
         Preference eUser = findPreference(ApplicationConstants.PREFS_FTP_USER_NAME);
@@ -55,14 +66,34 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
             ePass.setSummary("******");
         }
 
-        Preference button = findPreference(ApplicationConstants.PREFS_CONNECT_BUTTON);
+        button = findPreference(ApplicationConstants.PREFS_CONNECT_BUTTON);
         button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 //code for what you want it to do
-                return true;
+             //   connectToFTPAddress();
+                return false;
             }
         });
+    }
+
+    public void connectToFTPAddress() {
+        Log.i(TAG, "START CHECK");
+        final String host = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, "");
+        final String username = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, "");
+        final String password = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, "");
+        new Thread(new Runnable() {
+            public void run() {
+                boolean status = false;
+                status = ftpHelper.ftpConnect(host, username, password, 21);
+                if (status == true) {
+                    Log.d(TAG, "Connection Success");
+                } else {
+                    Log.d(TAG, "Connection failed");
+                }
+            }
+        }).start();
+
     }
 
     @Override
