@@ -41,10 +41,6 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                 ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
         ePass.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
                 ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
-        if(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
-                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)){
-
-        }
     }
 
     @Override

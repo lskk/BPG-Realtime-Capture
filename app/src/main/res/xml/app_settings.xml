@@ -17,6 +17,7 @@
         <EditTextPreference
             android:key="pass_pref"
             android:title="Password"
+            android:inputType="textPassword"
             android:dialogTitle="Set Password : " />
     </PreferenceCategory>
 
