@@ -20,6 +20,7 @@ import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
  */
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 
+    private String TAG = this.getClass().getSimpleName();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,12 +36,33 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         Preference eUser = findPreference(ApplicationConstants.PREFS_FTP_USER_NAME);
         Preference ePass = findPreference(ApplicationConstants.PREFS_FTP_PASSWORD);
 
+        Log.i(TAG, "curr host : "+sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
+                ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
+        Log.i(TAG, "curr username : "+sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME,
+                ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
+        Log.i(TAG, "curr Pass : "+sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
+                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
+
         eHost.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
                 ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
         eUser.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME,
                 ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
         ePass.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
                 ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
+
+        if(!sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
+                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)){
+            ePass.setSummary("******");
+        }
+
+        Preference button = findPreference(ApplicationConstants.PREFS_CONNECT_BUTTON);
+        button.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                //code for what you want it to do
+                return true;
+            }
+        });
     }
 
     @Override
@@ -67,7 +89,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPref, String key) {
-        Log.d("APPLICATION SETTINGS", "key=" + key);
+        Log.d(TAG, "key=" + key);
         if (key.equals(ApplicationConstants.PREFS_FTP_HOST_NAME)) {
             Preference editTextPref = findPreference(key);
             editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
@@ -76,7 +98,8 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
             editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
         }else if(key.equals(ApplicationConstants.PREFS_FTP_PASSWORD)){
             Preference editTextPref = findPreference(key);
-            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
+            editTextPref.setSummary("******");
+
         }
 
     }

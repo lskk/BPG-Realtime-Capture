@@ -13,4 +13,5 @@ public class ApplicationConstants {
     public static final String PREFS_HOST_DEFAULT_SUMMARY = "Set a FTP hostname";
     public static final String PREFS_USER_DEFAULT_SUMMARY = "Set FTP username";
     public static final String PREFS_PASS_DEFAULT_SUMMARY = "Set FTP Password";
+    public static final String PREFS_CONNECT_BUTTON = "test_ftp_conn";
 }

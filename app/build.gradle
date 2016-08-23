@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
+    useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "org.pptik.bpgrealtimecapture"
@@ -25,4 +26,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:design:23.4.0'
     compile 'io.realm:realm-android:0.87.2'
+    compile files('libs/org.apache.commons.net_2.0.0.v200905272248.jar')
 }

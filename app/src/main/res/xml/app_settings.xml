@@ -5,7 +5,6 @@
         android:summary="Set ftp host for image storing"
         android:icon="@android:drawable/ic_secure"
         >
-
         <EditTextPreference
             android:key="host_pref"
             android:title="Host"
@@ -18,7 +17,14 @@
             android:key="pass_pref"
             android:title="Password"
             android:inputType="textPassword"
+            android:summary="Set ftp host for image storing"
+            android:password="true"
             android:dialogTitle="Set Password : " />
+        <Preference
+            android:title="Test FTP Connection"
+            android:key="test_ftp_conn"
+            android:widgetLayout="@layout/pref_button"
+            android:summary="Make sure your FTP Settings are valid. Click 'Connect' button to see connection status"/>
     </PreferenceCategory>
 
 </PreferenceScreen>
