@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="FTP Settings">
+        android:title="FTP Settings"
+        android:summary="Set ftp host for image storing"
+        android:icon="@android:drawable/ic_secure"
+        >
 
         <EditTextPreference
             android:key="host_pref"
             android:title="Host"
-            android:summary="Set ftp hots for image storing"
             android:dialogTitle="Set Host : " />
+        <EditTextPreference
+            android:key="user_pref"
+            android:title="Username"
+            android:dialogTitle="Set Username : " />
+        <EditTextPreference
+            android:key="pass_pref"
+            android:title="Password"
+            android:dialogTitle="Set Password : " />
     </PreferenceCategory>
 
 </PreferenceScreen>

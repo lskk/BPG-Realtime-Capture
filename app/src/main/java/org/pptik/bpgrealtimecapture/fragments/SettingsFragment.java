@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import org.pptik.bpgrealtimecapture.R;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
@@ -24,26 +23,33 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Load the preferences from an XML resource
-
         addPreferencesFromResource(R.xml.app_settings);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        // register preference change listener
         SharedPreferences sharedPreferences = getPreferenceManager().getSharedPreferences();
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
-        // show values
-        Preference editTextPref = findPreference(ApplicationConstants.PREFS_FTP_HOST_NAME);
-        editTextPref.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, ""));
+        Preference eHost = findPreference(ApplicationConstants.PREFS_FTP_HOST_NAME);
+        Preference eUser = findPreference(ApplicationConstants.PREFS_FTP_USER_NAME);
+        Preference ePass = findPreference(ApplicationConstants.PREFS_FTP_PASSWORD);
+
+        eHost.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
+                ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
+        eUser.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME,
+                ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
+        ePass.setSummary(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
+                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
+        if(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
+                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)){
+
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        // unregister
         SharedPreferences sharedPreferences = getPreferenceManager().getSharedPreferences();
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
@@ -54,7 +60,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         getView().setBackgroundColor(Color.WHITE);
         LinearLayout root = (LinearLayout)getView().findViewById(android.R.id.list).getParent().getParent().getParent();
         Toolbar bar = (Toolbar) LayoutInflater.from(getActivity()).inflate(R.layout.settings_toolbar, root, false);
-        root.addView(bar, 0); // insert at top
+        root.addView(bar, 0);
         bar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,14 +69,18 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         });
     }
 
-    // change text or list values in PreferenceActivity ("Screen/Page")
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPref, String key) {
         Log.d("APPLICATION SETTINGS", "key=" + key);
         if (key.equals(ApplicationConstants.PREFS_FTP_HOST_NAME)) {
             Preference editTextPref = findPreference(key);
-            editTextPref.setSummary(sharedPref.getString(key, ""));
-            // list value
+            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
+        }else if(key.equals(ApplicationConstants.PREFS_FTP_USER_NAME)){
+            Preference editTextPref = findPreference(key);
+            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
+        }else if(key.equals(ApplicationConstants.PREFS_FTP_PASSWORD)){
+            Preference editTextPref = findPreference(key);
+            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY));
         }
 
     }
