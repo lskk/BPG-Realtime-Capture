@@ -62,13 +62,18 @@ public class FtpHelper {
     }
 
     public boolean ftpChangeDirectory(String directory_path) {
+        boolean isChanged = false;
         try {
-            mFTPClient.changeWorkingDirectory(directory_path);
+            isChanged = mFTPClient.changeWorkingDirectory(directory_path);
+            if(directory_path.equals(ftpGetCurrentWorkingDirectory())){
+                isChanged = true;
+            }
         } catch (Exception e) {
             Log.d(TAG, "Error: could not change directory to " + directory_path);
+            isChanged = false;
         }
 
-        return false;
+        return isChanged;
     }
 
     public String[] ftpPrintFilesList(String dir_path) {

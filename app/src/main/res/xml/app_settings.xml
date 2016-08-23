@@ -26,6 +26,11 @@
             android:inputType="number"
             android:summary="Set ftp host for image storing"
             android:dialogTitle="Set Port : " />
+        <EditTextPreference
+            android:key="pref_dir"
+            android:title="Working Directory"
+            android:summary="Set ftp host for image storing"
+            android:dialogTitle="Set Working Directory " />
         <Preference
             android:title="Test FTP Connection"
             android:key="test_ftp_conn"
