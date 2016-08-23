@@ -1,5 +1,6 @@
 package org.pptik.bpgrealtimecapture.fragments;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -35,6 +36,8 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     Preference ePass;
     Preference ePort;
     Preference eWD;
+    ProgressDialog dialog;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +52,8 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         context = getActivity();
         sharedPreferences = getPreferenceManager().getSharedPreferences();
         ftpHelper = new FtpHelper();
+        dialog = new ProgressDialog(context);
+        dialog.setMessage("Checking ...");
 
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         eHost = findPreference(ApplicationConstants.PREFS_FTP_HOST_NAME);
@@ -102,6 +107,8 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                 ){
             Snackbar.make(getView(), "Your FTP Setup is invalid, check again!", Snackbar.LENGTH_LONG).show();
         }else {
+
+            dialog.show();
             final String host = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, "");
             final String username = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, "");
             final String password = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, "");
@@ -116,8 +123,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                                 ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT);
                         boolean isWDExist = ftpHelper.ftpChangeDirectory(dirToCheck);
                         if(isWDExist){
+                            handler.sendEmptyMessage(1);
                             Log.d(TAG, "Directory"+dirToCheck+" Exist, success change dir");
-                            final Snackbar snackbar = Snackbar.make(getView(), "Connected to host "+host+" with working directory "+dirToCheck, Snackbar.LENGTH_INDEFINITE);
+                            final Snackbar snackbar = Snackbar.make(getView(), "Connected to host "+host+" with working directory '"+dirToCheck+"'", Snackbar.LENGTH_INDEFINITE);
                             snackbar.setAction("Dismiss", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -128,8 +136,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                         }else {
                             Log.d(TAG, "Directory not Exist");
                             workingdir = ftpHelper.ftpGetCurrentWorkingDirectory();
+                            handler.sendEmptyMessage(0);
                             Log.i(TAG, "Working dir : "+workingdir);
-                            final Snackbar snackbar = Snackbar.make(getView(), "Connected to host "+host+", but directory doesn't exist. Use "+workingdir+" directory instead."
+                            final Snackbar snackbar = Snackbar.make(getView(), "Connected to host "+host+", but directory doesn't exist. Use '"+workingdir+"' directory instead."
                                     , Snackbar.LENGTH_INDEFINITE);
                             snackbar.setAction("Dismiss", new View.OnClickListener() {
                                 @Override
@@ -138,7 +147,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                                 }
                             });
                             snackbar.show();
-                            handler.sendEmptyMessage(0);
+
                         }
                     } else {
                         Log.d(TAG, "Connection failed");
@@ -154,17 +163,18 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         public void handleMessage(android.os.Message msg) {
 
             if (msg.what == 0) {
+                dialog.dismiss();
                 eWD.setKey(workingdir);
                 eWD.setSummary(workingdir);
-            //    SharedPreferences.Editor editor = sharedPreferences.edit();
-            //    editor.putString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY, workingdir);
-            //    editor.commit();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY, workingdir);
+                editor.commit();
+            } else if (msg.what == 1) {
+                dialog.dismiss();
+
             } else if (msg.what == 2) {
 
-
             } else if (msg.what == 3) {
-
-            } else if (msg.what == 4) {
 
             }else {
 
@@ -177,9 +187,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     @Override
     public void onStop() {
         super.onStop();
+        ftpHelper.ftpDisconnect();
         SharedPreferences sharedPreferences = getPreferenceManager().getSharedPreferences();
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
-        ftpHelper.ftpDisconnect();
     }
 
     @Override
@@ -201,20 +211,15 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     public void onSharedPreferenceChanged(SharedPreferences sharedPref, String key) {
         Log.d(TAG, "key=" + key);
         if (key.equals(ApplicationConstants.PREFS_FTP_HOST_NAME)) {
-            Preference editTextPref = findPreference(key);
-            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
+            eHost.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY));
         }else if(key.equals(ApplicationConstants.PREFS_FTP_USER_NAME)){
-            Preference editTextPref = findPreference(key);
-            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
+            eUser.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY));
         }else if(key.equals(ApplicationConstants.PREFS_FTP_PASSWORD)){
-            Preference editTextPref = findPreference(key);
-            editTextPref.setSummary("******");
+            ePass.setSummary("******");
         }else if(key.equals(ApplicationConstants.PREFS_FTP_PORT)){
-            Preference editTextPref = findPreference(key);
-            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_PORT_DEFAULT_SUMMARY));
+            ePort.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_PORT_DEFAULT_SUMMARY));
         }else if(key.equals(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY)){
-            Preference editTextPref = findPreference(key);
-            editTextPref.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT));
+            eWD.setSummary(sharedPref.getString(key,  ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT));
         }
 
     }
