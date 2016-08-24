@@ -30,7 +30,7 @@ public class RealmHelper {
     public ArrayList<SavedFileModel> findAllArticle() {
         ArrayList<SavedFileModel> data = new ArrayList<>();
         realmResult = realm.where(SavedFile.class).findAll();
-        realmResult.sort("id", Sort.DESCENDING);
+        realmResult.sort("id", Sort.ASCENDING);
         if (realmResult.size() > 0) {
             Log.i(TAG, "Size : " + realmResult.size());
             for (int i = 0; i < realmResult.size(); i++) {
@@ -61,13 +61,13 @@ public class RealmHelper {
         Log.i(TAG, "Added file : " + filename);
     }
 
-    public void deleteData(int id) {
-        RealmResults<SavedFile> dataResults = realm.where(SavedFile.class).equalTo("id", id).findAll();
+    public void deleteData(String path) {
+        RealmResults<SavedFile> dataResults = realm.where(SavedFile.class).equalTo("path", path).findAll();
         realm.beginTransaction();
         dataResults.remove(0);
         dataResults.removeLast();
         dataResults.clear();
         realm.commitTransaction();
-        Log.i(TAG, "Deleted : "+id);
+        Log.i(TAG, "Deleted : "+path);
     }
 }

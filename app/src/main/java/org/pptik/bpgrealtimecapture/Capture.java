@@ -2,6 +2,7 @@ package org.pptik.bpgrealtimecapture;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,21 +15,21 @@ import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.Toast;
 
+import org.pptik.bpgrealtimecapture.bean.SavedFileModel;
 import org.pptik.bpgrealtimecapture.ftp.FtpHelper;
 import org.pptik.bpgrealtimecapture.helper.RealmHelper;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
+import org.pptik.bpgrealtimecapture.utilities.WarningDialog;
 
 public class Capture extends Activity implements Runnable{
     private Camera camera;
@@ -41,6 +42,9 @@ public class Capture extends Activity implements Runnable{
     private String pHost, pUser, pPass, pPort, pWorkingDir;
     private ProgressDialog dialog;
     private String workingdir;
+    private ArrayList<SavedFileModel> data;
+    private int dataSize = 0;
+    private File fileUpload;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,9 +54,10 @@ public class Capture extends Activity implements Runnable{
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.content_capture);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        dialog.setMessage("Connecting to FTP Server");
+        dialog.setMessage("Connecting to FTP Server...");
         setupFtp();
         ftpHelper = new FtpHelper();
+        realmHelper = new RealmHelper(Capture.this);
         connectToFtp();
 
 
@@ -63,8 +68,7 @@ public class Capture extends Activity implements Runnable{
                 || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY)
                 || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)
                 ){
-            Snackbar.make(getCurrentFocus(), "Your FTP Setup is invalid, check again!", Snackbar.LENGTH_LONG).show();
-            finish();
+            new WarningDialog(Capture.this, true).showWarning("Warning", "Your FTP Setup is invalid, check again!");
         }else {
 
             dialog.show();
@@ -99,8 +103,7 @@ public class Capture extends Activity implements Runnable{
                         }
                     } else {
                         Log.d(TAG, "Connection failed");
-                        Toast.makeText(getApplicationContext(), "Connection failed to FTP host, Check FTP Settings", Toast.LENGTH_LONG).show();
-                        finish();
+                        new WarningDialog(Capture.this, true).showWarning("Warning", "Connection failed to FTP host, Check FTP Settings");
                     }
                 }
             }).start();
@@ -118,11 +121,23 @@ public class Capture extends Activity implements Runnable{
                 editor.putString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY, workingdir);
                 editor.commit();
             } else if (msg.what == 1) {
+                // connect success
                 dialog.dismiss();
 
             } else if (msg.what == 2) {
+                // file not exist
 
             } else if (msg.what == 3) {
+                // success upload
+                String message = (String) msg.obj;
+                File file = new File(message);
+                boolean deleted = file.delete();
+                Log.i(TAG, "delete file "+message+" : "+deleted);
+                realmHelper.deleteData(message);
+
+
+            }else if (msg.what == 4) {
+                // failed upload
 
             }else {
 
@@ -151,7 +166,7 @@ public class Capture extends Activity implements Runnable{
         surfaceView.getHolder().setFixedSize(176, 144);
         surfaceView.getHolder().setKeepScreenOn(true);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
-        realmHelper = new RealmHelper(Capture.this);
+
 
         //--- BUILD TIMER ---//
         timer = new Timer();
@@ -244,6 +259,54 @@ public class Capture extends Activity implements Runnable{
     @Override
     public void run() {
         takepicture();
+    }
+
+    //--------- UPLOAD TO FTP -----------//
+    private void uploadImage(){
+        dialog.show();
+        final String[] pathFile = getFirstImagePath();
+        if(dataSize > 0){
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        boolean status = false;
+                        fileUpload = new File(pathFile[0]);
+                        if(fileUpload.exists())
+                            status = ftpHelper.ftpUpload(pathFile[0], pathFile[1]);
+                        else{
+                            handler.sendEmptyMessage(2);
+                        }
+
+                        if (status == true) {
+                            Log.d(TAG, "Upload success");
+                            handler.sendEmptyMessage(3);
+                            Message msg = Message.obtain();
+                            msg.obj = pathFile[0];
+                        } else {
+                            Log.d(TAG, "Upload failed");
+                            handler.sendEmptyMessage(4);
+
+                        }
+                    } catch (Exception e) {
+                    }
+
+                }
+            }).start();
+        }
+
+    }
+
+
+    private String[] getFirstImagePath(){
+        data = realmHelper.findAllArticle();
+        String[] lastPath = {"0", "0"};
+        dataSize = data.size();
+        if (dataSize > 0){
+            Log.i(TAG, "id : "+data.get(0).getId()+", Filename : "+data.get(0).getFilename()+", Path : "+data.get(0).getPath());
+            lastPath[0] = data.get(0).getPath();
+            lastPath[1] = data.get(0).getFilename();
+        }
+        return lastPath;
     }
 
 }

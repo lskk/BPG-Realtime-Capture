@@ -164,7 +164,7 @@ public class FtpHelper {
         return status;
     }
 
-    public boolean ftpUpload(String srcFilePath, String desFileName, String desDirectory, Context context) {
+    public boolean ftpUpload(String srcFilePath, String desFileName) {
         boolean status = false;
         try {
             FileInputStream srcFileStream = new FileInputStream(srcFilePath);
