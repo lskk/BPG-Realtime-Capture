@@ -124,13 +124,16 @@ public class SendImageService extends IntentService {
     }
 
     private void postPicture() {
-        Log.i(TAG, "start posting picture");
         final String[] pathFile = getFirstImagePath();
         if(dataSize > 0){
             new Thread(new Runnable() {
                 public void run() {
                     try {
                         boolean status = false;
+                        Log.i(TAG, "----------------------------------------------------------------------");
+                        Log.i(TAG, "POSTING FILE");
+                        Log.i(TAG, "----------------------------------------------------------------------");
+                        Log.i(TAG, "start posting picture");
                         fileUpload = new File(pathFile[0]);
                         if(fileUpload.exists()) {
                             Log.i(TAG, "Uploading : " + pathFile[1]);
@@ -144,6 +147,7 @@ public class SendImageService extends IntentService {
                             File file = new File(pathFile[0]);
                             boolean deleted = file.delete();
                             Log.i(TAG, "delete file "+pathFile[0]+" : "+deleted);
+                            realmHelper = new RealmHelper(getApplicationContext());
                             realmHelper.deleteData(pathFile[0]);
                             ftpHelper.ftpDisconnect();
                         } else {
@@ -151,6 +155,7 @@ public class SendImageService extends IntentService {
                             File file = new File(pathFile[0]);
                             boolean deleted = file.delete();
                             Log.i(TAG, "delete file "+pathFile[0]+" : "+deleted);
+                            realmHelper = new RealmHelper(getApplicationContext());
                             realmHelper.deleteData(pathFile[0]);
                             ftpHelper.ftpDisconnect();
                         }

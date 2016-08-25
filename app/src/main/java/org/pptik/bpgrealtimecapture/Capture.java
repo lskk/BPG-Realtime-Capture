@@ -98,6 +98,9 @@ public class Capture extends Activity implements Runnable{
                 FileOutputStream outStream = new FileOutputStream(jpgFile);
                 outStream.write(data);
                 outStream.close();
+                Log.i(TAG, "----------------------------------------------------------------------");
+                Log.i(TAG, "SAVING FILE");
+                Log.i(TAG, "----------------------------------------------------------------------");
                 isSavedSuccess = jpgFile.exists();
                 Log.i(TAG, "Success save file : "+isSavedSuccess);
                 Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
