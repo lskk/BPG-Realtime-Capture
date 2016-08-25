@@ -27,5 +27,33 @@ public class SendImageReceiver extends WakefulBroadcastReceiver {
     }
 
 
+    public void setAlarm(Context context) {
+        alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, SendImageReceiver.class);
+        alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.add(Calendar.MINUTE, 1);
+        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP,
+                calendar.getTimeInMillis(), 60000*1, alarmIntent);
 
+        ComponentName receiver = new ComponentName(context, BootReceiver.class);
+        PackageManager pm = context.getPackageManager();
+
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+    }
+
+
+    public void cancelAlarm(Context context) {
+        if (alarmMgr!= null) {
+            alarmMgr.cancel(alarmIntent);
+        }
+
+        ComponentName receiver = new ComponentName(context, BootReceiver.class);
+        PackageManager pm = context.getPackageManager();
+
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+    }
 }

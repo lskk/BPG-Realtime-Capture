@@ -37,7 +37,7 @@ public class Capture extends Activity implements Runnable{
     private String TAG = this.getClass().getSimpleName();
     private Timer timer;
     private boolean isSavedSuccess = false;
-    private FtpHelper ftpHelper;
+
     private SharedPreferences sharedPreferences;
     private String pHost, pUser, pPass, pPort, pWorkingDir;
     private ProgressDialog dialog;
@@ -56,59 +56,14 @@ public class Capture extends Activity implements Runnable{
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         dialog.setMessage("Connecting to FTP Server...");
         setupFtp();
-        ftpHelper = new FtpHelper();
+
         realmHelper = new RealmHelper(Capture.this);
-        connectToFtp();
+        initSurface();
 
 
     }
 
-    private void connectToFtp() {
-        if(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY)
-                || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY)
-                || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)
-                ){
-            new WarningDialog(Capture.this, true).showWarning("Warning", "Your FTP Setup is invalid, check again!");
-        }else {
 
-            dialog.show();
-            final String host = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, "");
-            final String username = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, "");
-            final String password = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, "");
-            final int port = Integer.parseInt(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PORT, "21"));
-            new Thread(new Runnable() {
-                public void run() {
-                    boolean status = false;
-                    status = ftpHelper.ftpConnect(host, username, password, port);
-                    if (status == true) {
-                        Log.d(TAG, "Connection Success");
-                        String dirToCheck = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY,
-                                ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT);
-                        boolean isWDExist = ftpHelper.ftpChangeDirectory(dirToCheck);
-                        if(isWDExist){
-                            handler.sendEmptyMessage(1);
-                            Log.d(TAG, "Directory"+dirToCheck+" Exist, success change dir");
-                            final Snackbar snackbar = Snackbar.make(getCurrentFocus(), "Connected to host "+host+" with working directory '"+dirToCheck+"'", Snackbar.LENGTH_LONG);
-                            snackbar.show();
-                            initSurface();
-                        }else {
-                            Log.d(TAG, "Directory not Exist");
-                            workingdir = ftpHelper.ftpGetCurrentWorkingDirectory();
-                            handler.sendEmptyMessage(0);
-                            Log.i(TAG, "Working dir : "+workingdir);
-                            final Snackbar snackbar = Snackbar.make(getCurrentFocus(), "Connected to host "+host+", but directory doesn't exist. Use '"+workingdir+"' directory instead."
-                                    , Snackbar.LENGTH_LONG);
-                            snackbar.show();
-                            initSurface();
-                        }
-                    } else {
-                        Log.d(TAG, "Connection failed");
-                        new WarningDialog(Capture.this, true).showWarning("Warning", "Connection failed to FTP host, Check FTP Settings");
-                    }
-                }
-            }).start();
-        }
-    }
 
 
     private Handler handler = new Handler() {
@@ -129,11 +84,7 @@ public class Capture extends Activity implements Runnable{
 
             } else if (msg.what == 3) {
                 // success upload
-                String message = (String) msg.obj;
-                File file = new File(message);
-                boolean deleted = file.delete();
-                Log.i(TAG, "delete file "+message+" : "+deleted);
-                realmHelper.deleteData(message);
+
 
 
             }else if (msg.what == 4) {
@@ -261,52 +212,5 @@ public class Capture extends Activity implements Runnable{
         takepicture();
     }
 
-    //--------- UPLOAD TO FTP -----------//
-    private void uploadImage(){
-        dialog.show();
-        final String[] pathFile = getFirstImagePath();
-        if(dataSize > 0){
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        boolean status = false;
-                        fileUpload = new File(pathFile[0]);
-                        if(fileUpload.exists())
-                            status = ftpHelper.ftpUpload(pathFile[0], pathFile[1]);
-                        else{
-                            handler.sendEmptyMessage(2);
-                        }
-
-                        if (status == true) {
-                            Log.d(TAG, "Upload success");
-                            handler.sendEmptyMessage(3);
-                            Message msg = Message.obtain();
-                            msg.obj = pathFile[0];
-                        } else {
-                            Log.d(TAG, "Upload failed");
-                            handler.sendEmptyMessage(4);
-
-                        }
-                    } catch (Exception e) {
-                    }
-
-                }
-            }).start();
-        }
-
-    }
-
-
-    private String[] getFirstImagePath(){
-        data = realmHelper.findAllArticle();
-        String[] lastPath = {"0", "0"};
-        dataSize = data.size();
-        if (dataSize > 0){
-            Log.i(TAG, "id : "+data.get(0).getId()+", Filename : "+data.get(0).getFilename()+", Path : "+data.get(0).getPath());
-            lastPath[0] = data.get(0).getPath();
-            lastPath[1] = data.get(0).getFilename();
-        }
-        return lastPath;
-    }
 
 }
