@@ -46,13 +46,15 @@ public class SendImageService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        Log.i(TAG, "service started");
         context = getApplicationContext();
         ftpHelper = new FtpHelper();
-        setupFtp();
         realmHelper = new RealmHelper(context);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        setupFtp();
 
         if(Tools.isNetworkConnected(this)) {
+            Log.i(TAG, "Connect to internet");
             Handler mHandler = new Handler(getMainLooper());
             mHandler.post(new Runnable() {
                 @Override
@@ -61,6 +63,8 @@ public class SendImageService extends IntentService {
                 }
             });
 
+        }else {
+            // not connect
         }
         SendImageReceiver.completeWakefulIntent(intent);
     }
@@ -79,6 +83,7 @@ public class SendImageService extends IntentService {
     }
 
     private void connectToFtp() {
+        Log.i(TAG, "Test connection to FTP");
         if(sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME, ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY)
                 || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME, ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY)
                 || sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD, ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY).equals(ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY)
@@ -102,7 +107,7 @@ public class SendImageService extends IntentService {
                             Log.d(TAG, "Directory"+dirToCheck+" Exist, success change dir");
                             postPicture();
                         }else {
-                            Log.d(TAG, "Directory not Exist");
+                            Log.d(TAG, "Directory not Exist, use default instead");
                             workingdir = ftpHelper.ftpGetCurrentWorkingDirectory();
                             Log.i(TAG, "Working dir : "+workingdir);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -119,6 +124,7 @@ public class SendImageService extends IntentService {
     }
 
     private void postPicture() {
+        Log.i(TAG, "start posting picture");
         final String[] pathFile = getFirstImagePath();
         if(dataSize > 0){
             new Thread(new Runnable() {
@@ -126,9 +132,10 @@ public class SendImageService extends IntentService {
                     try {
                         boolean status = false;
                         fileUpload = new File(pathFile[0]);
-                        if(fileUpload.exists())
+                        if(fileUpload.exists()) {
+                            Log.i(TAG, "Uploading : " + pathFile[1]);
                             status = ftpHelper.ftpUpload(pathFile[0], pathFile[1]);
-                        else{
+                        } else{
                             Log.d(TAG, "File not exist");
                         }
 
@@ -156,6 +163,7 @@ public class SendImageService extends IntentService {
     }
 
     private String[] getFirstImagePath(){
+        realmHelper = new RealmHelper(getApplicationContext());
         data = realmHelper.findAllArticle();
         String[] lastPath = {"0", "0"};
         dataSize = data.size();
