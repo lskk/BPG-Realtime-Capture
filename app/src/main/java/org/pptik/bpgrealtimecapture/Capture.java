@@ -24,12 +24,9 @@ import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
-
-import org.pptik.bpgrealtimecapture.bean.SavedFileModel;
-import org.pptik.bpgrealtimecapture.ftp.FtpHelper;
 import org.pptik.bpgrealtimecapture.helper.RealmHelper;
+import org.pptik.bpgrealtimecapture.receivers.SendImageReceiver;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
-import org.pptik.bpgrealtimecapture.utilities.WarningDialog;
 
 public class Capture extends Activity implements Runnable{
     private Camera camera;
@@ -37,15 +34,6 @@ public class Capture extends Activity implements Runnable{
     private String TAG = this.getClass().getSimpleName();
     private Timer timer;
     private boolean isSavedSuccess = false;
-
-    private SharedPreferences sharedPreferences;
-    private String pHost, pUser, pPass, pPort, pWorkingDir;
-    private ProgressDialog dialog;
-    private String workingdir;
-    private ArrayList<SavedFileModel> data;
-    private int dataSize = 0;
-    private File fileUpload;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,9 +41,8 @@ public class Capture extends Activity implements Runnable{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.content_capture);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        dialog.setMessage("Connecting to FTP Server...");
-        setupFtp();
+        SendImageReceiver sendImageReceiver = new SendImageReceiver();
+        sendImageReceiver.setAlarm(this);
 
         realmHelper = new RealmHelper(Capture.this);
         initSurface();
@@ -66,50 +53,8 @@ public class Capture extends Activity implements Runnable{
 
 
 
-    private Handler handler = new Handler() {
-
-        public void handleMessage(android.os.Message msg) {
-
-            if (msg.what == 0) {
-                dialog.dismiss();
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY, workingdir);
-                editor.commit();
-            } else if (msg.what == 1) {
-                // connect success
-                dialog.dismiss();
-
-            } else if (msg.what == 2) {
-                // file not exist
-
-            } else if (msg.what == 3) {
-                // success upload
 
 
-
-            }else if (msg.what == 4) {
-                // failed upload
-
-            }else {
-
-            }
-
-        }
-
-    };
-
-    private void setupFtp(){
-        pHost = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
-                ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY);
-        pUser = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME,
-                ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY);
-        pPass = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
-                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY);
-        pPort = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PORT,
-                ApplicationConstants.PREFS_PORT_DEFAULT_SUMMARY);
-        pWorkingDir = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY,
-                ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT);
-    }
 
     private void initSurface(){
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);

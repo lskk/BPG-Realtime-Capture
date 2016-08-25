@@ -37,6 +37,7 @@ public class SendImageService extends IntentService {
     private File fileUpload;
     private ArrayList<SavedFileModel> data;
     private RealmHelper realmHelper;
+    private String pHost, pUser, pPass, pPort, pWorkingDir;
 
 
     public SendImageService() {
@@ -47,6 +48,7 @@ public class SendImageService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         context = getApplicationContext();
         ftpHelper = new FtpHelper();
+        setupFtp();
         realmHelper = new RealmHelper(context);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -61,6 +63,19 @@ public class SendImageService extends IntentService {
 
         }
         SendImageReceiver.completeWakefulIntent(intent);
+    }
+
+    private void setupFtp(){
+        pHost = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_HOST_NAME,
+                ApplicationConstants.PREFS_HOST_DEFAULT_SUMMARY);
+        pUser = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_USER_NAME,
+                ApplicationConstants.PREFS_USER_DEFAULT_SUMMARY);
+        pPass = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PASSWORD,
+                ApplicationConstants.PREFS_PASS_DEFAULT_SUMMARY);
+        pPort = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_PORT,
+                ApplicationConstants.PREFS_PORT_DEFAULT_SUMMARY);
+        pWorkingDir = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY,
+                ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT);
     }
 
     private void connectToFtp() {
@@ -90,6 +105,9 @@ public class SendImageService extends IntentService {
                             Log.d(TAG, "Directory not Exist");
                             workingdir = ftpHelper.ftpGetCurrentWorkingDirectory();
                             Log.i(TAG, "Working dir : "+workingdir);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY, workingdir);
+                            editor.commit();
                             postPicture();
                         }
                     } else {
