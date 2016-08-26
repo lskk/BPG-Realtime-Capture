@@ -150,6 +150,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                         }
                     } else {
                         Log.d(TAG, "Connection failed");
+                        handler.sendEmptyMessage(2);
                     }
                 }
             }).start();
@@ -172,6 +173,16 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                 dialog.dismiss();
 
             } else if (msg.what == 2) {
+                dialog.dismiss();
+                final Snackbar snackbar = Snackbar.make(getView(), "Connection Failed, check again!."
+                        , Snackbar.LENGTH_INDEFINITE);
+                snackbar.setAction("Dismiss", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        snackbar.dismiss();
+                    }
+                });
+                snackbar.show();
 
             } else if (msg.what == 3) {
 

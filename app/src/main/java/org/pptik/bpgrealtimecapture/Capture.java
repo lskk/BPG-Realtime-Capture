@@ -2,22 +2,15 @@ package org.pptik.bpgrealtimecapture;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.app.ProgressDialog;
-import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.app.Activity;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
-import android.preference.PreferenceManager;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
@@ -71,7 +64,7 @@ public class Capture extends Activity implements Runnable{
             public void run() {
                 Capture.this.run();
             }
-        }, 5000, 5000);
+        }, 30000, 60000);
     }
 
     public void takepicture(){
