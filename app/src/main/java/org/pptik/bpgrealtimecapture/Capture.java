@@ -34,8 +34,9 @@ public class Capture extends Activity implements Runnable{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.content_capture);
-        SendImageReceiver sendImageReceiver = new SendImageReceiver();
-        sendImageReceiver.setAlarm(this);
+
+    //    SendImageReceiver sendImageReceiver = new SendImageReceiver();
+    //    sendImageReceiver.setAlarm(this);
 
         realmHelper = new RealmHelper(Capture.this);
         initSurface();
@@ -64,7 +65,7 @@ public class Capture extends Activity implements Runnable{
             public void run() {
                 Capture.this.run();
             }
-        }, 30000, 60000);
+        }, 30000, 30000);
     }
 
     public void takepicture(){
