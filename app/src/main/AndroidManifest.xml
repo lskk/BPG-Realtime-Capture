@@ -50,6 +50,7 @@
         </receiver>
         <receiver android:name=".receivers.SendImageReceiver"></receiver>
         <service android:name=".services.SendImageService" />
+        <service android:name=".services.SyncService" />
     </application>
 
 </manifest>

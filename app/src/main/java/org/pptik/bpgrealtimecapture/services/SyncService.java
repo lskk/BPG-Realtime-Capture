@@ -150,9 +150,7 @@ public class SyncService extends Service implements Runnable {
                     try {
                         boolean status = false;
                         Log.i(TAG, "----------------------------------------------------------------------");
-                        Log.i(TAG, "POSTING FILE");
-                        Log.i(TAG, "----------------------------------------------------------------------");
-                        Log.i(TAG, "start posting picture");
+                        Log.i(TAG, "start posting picture, path : "+pathFile[0]);
                         fileUpload = new File(pathFile[0]);
                         if(fileUpload.exists()) {
                             Log.i(TAG, "Uploading : " + pathFile[1]);
@@ -168,7 +166,7 @@ public class SyncService extends Service implements Runnable {
                             Log.i(TAG, "delete file "+pathFile[0]+" : "+deleted);
                             realmHelper = new RealmHelper(getApplicationContext());
                             realmHelper.deleteData(pathFile[0]);
-                            ftpHelper.ftpDisconnect();
+                         //   ftpHelper.ftpDisconnect();
                         } else {
                             Log.d(TAG, "Upload failed");
                             File file = new File(pathFile[0]);
@@ -176,13 +174,15 @@ public class SyncService extends Service implements Runnable {
                             Log.i(TAG, "delete file "+pathFile[0]+" : "+deleted);
                             realmHelper = new RealmHelper(getApplicationContext());
                             realmHelper.deleteData(pathFile[0]);
-                            ftpHelper.ftpDisconnect();
+                        //    ftpHelper.ftpDisconnect();
                         }
                     } catch (Exception e) {
                     }
 
                 }
             }).start();
+        }else {
+            Log.i(TAG, "data < 0");
         }
     }
 
@@ -192,6 +192,8 @@ public class SyncService extends Service implements Runnable {
         String[] lastPath = {"0", "0"};
         dataSize = data.size();
         if (dataSize > 0){
+            Log.i(TAG, "----------------------------------------------------------------------");
+            Log.i(TAG, "POSTING FILE");
             Log.i(TAG, "id : "+data.get(0).getId()+", Filename : "+data.get(0).getFilename()+", Path : "+data.get(0).getPath());
             lastPath[0] = data.get(0).getPath();
             lastPath[1] = data.get(0).getFilename();

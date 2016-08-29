@@ -2,10 +2,12 @@ package org.pptik.bpgrealtimecapture;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.Intent;
 import android.hardware.Camera;
 import android.app.Activity;
 import android.hardware.Camera.PictureCallback;
@@ -17,8 +19,11 @@ import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
+
+import org.pptik.bpgrealtimecapture.bean.SavedFileModel;
 import org.pptik.bpgrealtimecapture.helper.RealmHelper;
 import org.pptik.bpgrealtimecapture.receivers.SendImageReceiver;
+import org.pptik.bpgrealtimecapture.services.SyncService;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
 public class Capture extends Activity implements Runnable{
@@ -27,6 +32,8 @@ public class Capture extends Activity implements Runnable{
     private String TAG = this.getClass().getSimpleName();
     private Timer timer;
     private boolean isSavedSuccess = false;
+    private ArrayList<SavedFileModel> datas;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +44,7 @@ public class Capture extends Activity implements Runnable{
 
     //    SendImageReceiver sendImageReceiver = new SendImageReceiver();
     //    sendImageReceiver.setAlarm(this);
+        startService(new Intent(Capture.this, SyncService.class));
 
         realmHelper = new RealmHelper(Capture.this);
         initSurface();
@@ -94,12 +102,15 @@ public class Capture extends Activity implements Runnable{
                 outStream.close();
                 Log.i(TAG, "----------------------------------------------------------------------");
                 Log.i(TAG, "SAVING FILE");
-                Log.i(TAG, "----------------------------------------------------------------------");
+
                 isSavedSuccess = jpgFile.exists();
                 Log.i(TAG, "Success save file : "+isSavedSuccess);
                 Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
                 if(isSavedSuccess) {
                     realmHelper.addFile(filename, jpgFile.getAbsolutePath());
+                    datas = realmHelper.findAllArticle();
+                    Log.i(TAG, "Total Size : "+datas.size());
+                    Log.i(TAG, "----------------------------------------------------------------------");
                 }
                 camera.startPreview();
             } catch (Exception e) {
