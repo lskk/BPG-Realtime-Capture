@@ -118,6 +118,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
                     status = ftpHelper.ftpConnect(host, username, password, port);
                     if (status == true) {
                         Log.d(TAG, "Connection Success");
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean(ApplicationConstants.PREFS_EVERYTHING_OK, true);
+                        editor.commit();
                         String dirToCheck = sharedPreferences.getString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY,
                                 ApplicationConstants.PREFS_WORKING_DIRECTORY_DEFAULT);
                         boolean isWDExist = ftpHelper.ftpChangeDirectory(dirToCheck);
