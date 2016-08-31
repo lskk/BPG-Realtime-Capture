@@ -58,7 +58,7 @@ public class Capture extends Activity implements Runnable{
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         surfaceView.getHolder().setFixedSize(176, 144);
-        surfaceView.getHolder().setKeepScreenOn(true);
+        surfaceView.getHolder().setKeepScreenOn(false);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
 
 
