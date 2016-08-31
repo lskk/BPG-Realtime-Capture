@@ -22,14 +22,11 @@ import android.view.WindowManager;
 
 import org.pptik.bpgrealtimecapture.bean.SavedFileModel;
 import org.pptik.bpgrealtimecapture.helper.FilesHelper;
-import org.pptik.bpgrealtimecapture.helper.RealmHelper;
-import org.pptik.bpgrealtimecapture.receivers.SendImageReceiver;
 import org.pptik.bpgrealtimecapture.services.SyncService;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
 public class Capture extends Activity implements Runnable{
     private Camera camera;
-    private RealmHelper realmHelper;
     private FilesHelper filesHelper;
     private String TAG = this.getClass().getSimpleName();
     private Timer timer;
@@ -43,12 +40,8 @@ public class Capture extends Activity implements Runnable{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.content_capture);
-
-    //    SendImageReceiver sendImageReceiver = new SendImageReceiver();
-    //    sendImageReceiver.setAlarm(this);
         startService(new Intent(Capture.this, SyncService.class));
 
-        realmHelper = new RealmHelper(Capture.this);
         filesHelper = new FilesHelper();
         initSurface();
 
@@ -110,10 +103,7 @@ public class Capture extends Activity implements Runnable{
                 Log.i(TAG, "Success save file : "+isSavedSuccess);
                 Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
                 if(isSavedSuccess) {
-                //    realmHelper.addFile(filename, jpgFile.getAbsolutePath());
-                //    datas = realmHelper.findAllArticle();
                     filesHelper.insert(Capture.this, filename, jpgFile.getAbsolutePath());
-                //    Log.i(TAG, "Total Size : "+datas.size());
                     Log.i(TAG, "Total size : "+filesHelper.getCount(Capture.this));
                     Log.i(TAG, "----------------------------------------------------------------------");
                 }

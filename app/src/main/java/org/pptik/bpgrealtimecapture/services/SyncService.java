@@ -13,7 +13,6 @@ import android.util.Log;
 import org.pptik.bpgrealtimecapture.bean.SavedFileModel;
 import org.pptik.bpgrealtimecapture.ftp.FtpHelper;
 import org.pptik.bpgrealtimecapture.helper.FilesHelper;
-import org.pptik.bpgrealtimecapture.helper.RealmHelper;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 import org.pptik.bpgrealtimecapture.utilities.Tools;
 
@@ -36,7 +35,6 @@ public class SyncService extends Service implements Runnable {
     private int dataSize;
     private File fileUpload;
     private ArrayList<SavedFileModel> data;
-    private RealmHelper realmHelper;
     private String pHost, pUser, pPass, pPort, pWorkingDir;
     private Timer timer;
     private FilesHelper filesHelper;
@@ -54,7 +52,6 @@ public class SyncService extends Service implements Runnable {
         Log.i(TAG, "service create");
         context = getApplicationContext();
         ftpHelper = new FtpHelper();
-        realmHelper = new RealmHelper(context);
         filesHelper = new FilesHelper();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -146,7 +143,6 @@ public class SyncService extends Service implements Runnable {
     }
 
     private void postPicture() {
-    //    final String[] pathFile = getFirstImagePath();
         if(filesHelper.getCount(context) > 0){
             new Thread(new Runnable() {
                 public void run() {
@@ -173,18 +169,12 @@ public class SyncService extends Service implements Runnable {
                             boolean deleted = file.delete();
                             Log.i(TAG, "delete file "+pathFile+" : "+deleted);
                             filesHelper.delete(context, _id);
-                         //   realmHelper = new RealmHelper(getApplicationContext());
-                         //   realmHelper.deleteData(pathFile[0]);
-                         //   ftpHelper.ftpDisconnect();
                         } else {
                             Log.d(TAG, "Upload failed");
                             File file = new File(pathFile);
                             boolean deleted = file.delete();
                             Log.i(TAG, "delete file "+pathFile+" : "+deleted);
                             filesHelper.delete(context, _id);
-                        //    realmHelper = new RealmHelper(getApplicationContext());
-                        //    realmHelper.deleteData(pathFile[0]);
-                        //    ftpHelper.ftpDisconnect();
                         }
                     } catch (Exception e) {
                     }
@@ -196,18 +186,4 @@ public class SyncService extends Service implements Runnable {
         }
     }
 
-    private String[] getFirstImagePath(){
-        realmHelper = new RealmHelper(getApplicationContext());
-        data = realmHelper.findAllArticle();
-        String[] lastPath = {"0", "0"};
-        dataSize = data.size();
-        if (dataSize > 0){
-            Log.i(TAG, "----------------------------------------------------------------------");
-            Log.i(TAG, "POSTING FILE");
-            Log.i(TAG, "id : "+data.get(0).getId()+", Filename : "+data.get(0).getFilename()+", Path : "+data.get(0).getPath());
-            lastPath[0] = data.get(0).getPath();
-            lastPath[1] = data.get(0).getFilename();
-        }
-        return lastPath;
-    }
 }

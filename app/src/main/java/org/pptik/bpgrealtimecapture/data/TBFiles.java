@@ -53,6 +53,7 @@ public class TBFiles {
     }
 
     public int delete(String id) {
+        Log.i(TAG, "delete file id "+id);
         return db.delete(TABLE_LIST_FILES, COL_ID + "=?",
                 new String[] { id });
     }
