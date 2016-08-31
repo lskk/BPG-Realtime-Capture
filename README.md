@@ -9,6 +9,7 @@ Features :
 * Setup and check FTP connections
 * Capture and save image to NAS every 0.5sec
 * No Preview! for durability reason. Check camera position with default cam app before start the features.
+* Start capture and turn off the screen!
 
 Future dev :
 * Menu cam preview.
