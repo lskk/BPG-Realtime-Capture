@@ -53,7 +53,6 @@ public class Capture extends Activity implements Runnable{
 
 
 
-
     private void initSurface(){
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -152,6 +151,7 @@ public class Capture extends Activity implements Runnable{
     protected  void onDestroy(){
         super.onDestroy();
         timer.cancel();
+        stopService(new Intent(Capture.this, SyncService.class));
     }
 
 
