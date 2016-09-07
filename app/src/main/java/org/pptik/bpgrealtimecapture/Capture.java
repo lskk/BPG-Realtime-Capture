@@ -7,12 +7,15 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.app.ActivityManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.app.Activity;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
@@ -29,9 +32,10 @@ public class Capture extends Activity implements Runnable{
     private Camera camera;
     private FilesHelper filesHelper;
     private String TAG = this.getClass().getSimpleName();
+    private SharedPreferences sharedPreferences;
     private Timer timer;
     private boolean isSavedSuccess = false;
-    private ArrayList<SavedFileModel> datas;
+    String serviceName = "org.pptik.bpgrealtimecapture.services.SyncService";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,15 +44,14 @@ public class Capture extends Activity implements Runnable{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.content_capture);
-        startService(new Intent(Capture.this, SyncService.class));
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if(!isServiceRunning()) {
+
+        }
 
         filesHelper = new FilesHelper();
         initSurface();
-
-
     }
-
-
 
 
 
@@ -153,12 +156,30 @@ public class Capture extends Activity implements Runnable{
         super.onDestroy();
         timer.cancel();
         stopService(new Intent(Capture.this, SyncService.class));
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(ApplicationConstants.PREFS_IS_SERVER_RUNNING, false);
+        editor.commit();
     }
 
+    @Override
+    public void onPause(){
+        super.onPause();
+        Log.i(TAG, "Screen Off");
+    }
 
     @Override
     public void run() {
         takepicture();
+    }
+
+    private boolean isServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for(ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if(serviceName.equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

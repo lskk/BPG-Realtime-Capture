@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import org.pptik.bpgrealtimecapture.services.SyncService;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
 
@@ -56,6 +57,7 @@ public class Main extends AppCompatActivity {
                     snackbar.show();
                 }else {
                     startActivity(new Intent(Main.this, Capture.class));
+                    startService(new Intent(Main.this, SyncService.class));
                 }
             }
         });

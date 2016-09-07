@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.FileObserver;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -49,7 +51,8 @@ import cz.msebera.android.httpclient.Header;
  * Created by hynra on 8/29/16.
  */
 
-public class SyncService extends Service implements Runnable {
+public class SyncService extends Service {
+    //public class SyncService extends Service implements Runnable {
 
     public static final String TAG = "Service Sender ";
     private Context context;
@@ -63,6 +66,7 @@ public class SyncService extends Service implements Runnable {
     private Timer timer;
     private FilesHelper filesHelper;
     RequestParams params = new RequestParams();
+    private FileObserver observer;
 
     @Nullable
     @Override
@@ -79,8 +83,9 @@ public class SyncService extends Service implements Runnable {
         ftpHelper = new FtpHelper();
         filesHelper = new FilesHelper();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
     }
+
+
 
     @SuppressWarnings("deprecation")
     @Override
@@ -90,7 +95,14 @@ public class SyncService extends Service implements Runnable {
         Log.i(TAG, "service start");
         if(Tools.isNetworkConnected(this)) {
             Log.i(TAG, "Connect to internet");
-            connectToFtp();
+            if(sharedPreferences.getBoolean(ApplicationConstants.PREFS_IS_SERVER_RUNNING, false)){
+                Log.i(TAG, "Service is Already running");
+            }else {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(ApplicationConstants.PREFS_IS_SERVER_RUNNING, true);
+                editor.commit();
+                connectToFtp();
+            }
 
         }else {
             // not connect
@@ -134,7 +146,8 @@ public class SyncService extends Service implements Runnable {
                         boolean isWDExist = ftpHelper.ftpChangeDirectory(dirToCheck);
                         if(isWDExist){
                             Log.d(TAG, "Directory"+dirToCheck+" Exist, success change dir");
-                            startTimerTask();
+                        //    startTimerTask();
+                            postPicture();
                         }else {
                             Log.d(TAG, "Directory not Exist, use default instead");
                             workingdir = ftpHelper.ftpGetCurrentWorkingDirectory();
@@ -142,7 +155,8 @@ public class SyncService extends Service implements Runnable {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString(ApplicationConstants.PREFS_FTP_WORKING_DIRECTORY, workingdir);
                             editor.commit();
-                            startTimerTask();
+                            postPicture();
+                        //    startTimerTask();
                         }
                     } else {
                         Log.d(TAG, "Connection failed");
@@ -152,7 +166,7 @@ public class SyncService extends Service implements Runnable {
         }
     }
 
-    private void startTimerTask() {
+/*    private void startTimerTask() {
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -165,9 +179,10 @@ public class SyncService extends Service implements Runnable {
     @Override
     public void run() {
         postPicture();
-    }
+    } */
 
     private void postPicture() {
+        SystemClock.sleep(3000);
         if(filesHelper.getCount(context) > 0){
             new Thread(new Runnable() {
                 public void run() {
@@ -176,7 +191,7 @@ public class SyncService extends Service implements Runnable {
                         Log.i(TAG, "----------------------------------------------------------------------");
                         Log.i(TAG, "POSTING FILE");
                         Log.i(TAG, "----------------------------------------------------------------------");
-                        String pathFile = filesHelper.getLastPath(context);
+                        final String pathFile = filesHelper.getLastPath(context);
                         final String filename = filesHelper.getLastFilename(context);
                         String _id = filesHelper.getLastId(context);
                         Log.i(TAG, "start posting picture, path : "+pathFile);
@@ -213,7 +228,8 @@ public class SyncService extends Service implements Runnable {
                 }
             }).start();
         }else {
-            Log.i(TAG, "data < 0");
+            Log.i(TAG, "------------- NO DATA, SKIP ---------------");
+            postPicture();
         }
     }
 
@@ -231,6 +247,7 @@ public class SyncService extends Service implements Runnable {
         @Override
         protected void onPostExecute(String result) {
             Log.i(TAG, "HTTP RES : "+result);
+            postPicture();
         }
     }
 
