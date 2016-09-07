@@ -124,7 +124,8 @@ public class Capture extends Activity implements Runnable{
             //    parameters.setPreviewFrameRate(5);
                 List<Camera.Size> ss = parameters.getSupportedPictureSizes();
                 Camera.Size s = ss.get(0);
-                parameters.setPictureSize(s.width, s.height);
+            //    parameters.setPictureSize(s.width, s.height);
+                parameters.setPictureSize(1280, 720);
                 parameters.setJpegQuality(100);
                 parameters.setRotation(0);
                 camera.setParameters(parameters);

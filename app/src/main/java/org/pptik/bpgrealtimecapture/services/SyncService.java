@@ -204,6 +204,8 @@ public class SyncService extends Service implements Runnable {
                             boolean deleted = file.delete();
                             Log.i(TAG, "delete file "+pathFile+" : "+deleted);
                             filesHelper.delete(context, _id);
+                            ftpHelper.ftpDisconnect();
+                            connectToFtp();
                         }
                     } catch (Exception e) {
                     }
