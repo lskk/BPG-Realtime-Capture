@@ -68,7 +68,7 @@ public class Capture extends Activity implements Runnable{
             public void run() {
                 Capture.this.run();
             }
-        }, 30000, 30000);
+        }, 30000 * 2, 30000 * 2);
     }
 
     public void takepicture(){
@@ -97,14 +97,14 @@ public class Capture extends Activity implements Runnable{
                 outStream.close();
                 Log.i(TAG, "----------------------------------------------------------------------");
                 Log.i(TAG, "SAVING FILE");
-
+                Log.i(TAG, "----------------------------------------------------------------------");
                 isSavedSuccess = jpgFile.exists();
                 Log.i(TAG, "Success save file : "+isSavedSuccess);
                 Log.i(TAG, "Image Path : "+ jpgFile.getAbsolutePath());
                 if(isSavedSuccess) {
                     filesHelper.insert(Capture.this, filename, jpgFile.getAbsolutePath());
                     Log.i(TAG, "Total size : "+filesHelper.getCount(Capture.this));
-                    Log.i(TAG, "----------------------------------------------------------------------");
+
                 }
                 camera.startPreview();
             } catch (Exception e) {
@@ -120,8 +120,8 @@ public class Capture extends Activity implements Runnable{
                 camera = Camera.open();
                 Camera.Parameters parameters = camera.getParameters();
                 Log.i(TAG, parameters.flatten());
-                parameters.setPreviewSize(800, 480);
-                parameters.setPreviewFrameRate(5);
+            //    parameters.setPreviewSize(800, 480);
+            //    parameters.setPreviewFrameRate(5);
                 List<Camera.Size> ss = parameters.getSupportedPictureSizes();
                 Camera.Size s = ss.get(0);
                 parameters.setPictureSize(s.width, s.height);

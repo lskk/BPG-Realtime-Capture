@@ -4,22 +4,46 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.SyncHttpClient;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.pptik.bpgrealtimecapture.R;
 import org.pptik.bpgrealtimecapture.bean.SavedFileModel;
 import org.pptik.bpgrealtimecapture.ftp.FtpHelper;
 import org.pptik.bpgrealtimecapture.helper.FilesHelper;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 import org.pptik.bpgrealtimecapture.utilities.Tools;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import cz.msebera.android.httpclient.Header;
 
 /**
  * Created by hynra on 8/29/16.
@@ -38,6 +62,7 @@ public class SyncService extends Service implements Runnable {
     private String pHost, pUser, pPass, pPort, pWorkingDir;
     private Timer timer;
     private FilesHelper filesHelper;
+    RequestParams params = new RequestParams();
 
     @Nullable
     @Override
@@ -134,7 +159,7 @@ public class SyncService extends Service implements Runnable {
             public void run() {
                 SyncService.this.run();
             }
-        }, 30000, 30000);
+        }, 30000 * 2, 30000 * 2);
     }
 
     @Override
@@ -152,7 +177,7 @@ public class SyncService extends Service implements Runnable {
                         Log.i(TAG, "POSTING FILE");
                         Log.i(TAG, "----------------------------------------------------------------------");
                         String pathFile = filesHelper.getLastPath(context);
-                        String filename = filesHelper.getLastFilename(context);
+                        final String filename = filesHelper.getLastFilename(context);
                         String _id = filesHelper.getLastId(context);
                         Log.i(TAG, "start posting picture, path : "+pathFile);
                         fileUpload = new File(pathFile);
@@ -165,10 +190,14 @@ public class SyncService extends Service implements Runnable {
 
                         if (status == true) {
                             Log.d(TAG, "Upload success");
+
                             File file = new File(pathFile);
+                            final long fileSizeInKB = file.length() / 1024 ;
                             boolean deleted = file.delete();
                             Log.i(TAG, "delete file "+pathFile+" : "+deleted);
                             filesHelper.delete(context, _id);
+                            new ExecuteTask().execute(filename,
+                                    String.valueOf(fileSizeInKB), getApplicationContext().getResources().getString(R.string.main_path_stored_file)+filename);
                         } else {
                             Log.d(TAG, "Upload failed");
                             File file = new File(pathFile);
@@ -184,6 +213,67 @@ public class SyncService extends Service implements Runnable {
         }else {
             Log.i(TAG, "data < 0");
         }
+    }
+
+
+    //--------------------------------------------------------------- store path to db
+
+    class ExecuteTask extends AsyncTask<String, Integer, String>
+    {
+        @Override
+        protected String doInBackground(String... params) {
+            String res = PostData(params);
+            return res;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            Log.i(TAG, "HTTP RES : "+result);
+        }
+    }
+
+    public String PostData(String[] values) {
+        String s="";
+        try
+        {
+            HttpClient httpClient=new DefaultHttpClient();
+            HttpPost httpPost=new HttpPost(getApplicationContext().getResources().getString(R.string.url_store));
+            List<NameValuePair> list=new ArrayList<NameValuePair>();
+            list.add(new BasicNameValuePair("file_name", values[0]));
+            list.add(new BasicNameValuePair("file_size", values[1]));
+            list.add(new BasicNameValuePair("file_path", values[2]));
+            httpPost.setEntity(new UrlEncodedFormEntity(list));
+            HttpResponse httpResponse=  httpClient.execute(httpPost);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            s = readResponse(httpResponse);
+
+        }
+        catch(Exception exception)  {
+            exception.printStackTrace();
+        }
+        return s;
+    }
+
+
+    public String readResponse(HttpResponse res) {
+        InputStream is = null;
+        String return_text="";
+        try {
+            is=res.getEntity().getContent();
+            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(is));
+            String line="";
+            StringBuffer sb=new StringBuffer();
+            while ((line=bufferedReader.readLine())!=null)
+            {
+                sb.append(line);
+            }
+            return_text=sb.toString();
+        } catch (Exception e)
+        {
+
+        }
+        return return_text;
+
     }
 
 }

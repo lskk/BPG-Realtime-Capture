@@ -2,4 +2,6 @@
     <string name="app_name">BPG Realtime Capture</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_capture">Capture</string>
+    <string name="url_store">http://167.205.7.228:8090/v1/parkingcctv/store</string>
+    <string name="main_path_stored_file">ftp://ftp.lskk.ee.itb.ac.id/HPCCTV/</string>
 </resources>
