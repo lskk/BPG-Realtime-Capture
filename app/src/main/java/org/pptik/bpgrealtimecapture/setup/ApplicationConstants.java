@@ -20,6 +20,7 @@ public class ApplicationConstants {
     public static final String PREFS_WORKING_DIRECTORY_DEFAULT = "/";
     public static final String PREFS_PORT_DEFAULT_SUMMARY = "21";
     public static final String PREFS_CONNECT_BUTTON = "test_ftp_conn";
+    public static final String PREFS_SURFACE_IS_INIT = "surfaceisinit";
 
     public static final String INTENT_FTP_OBJECT = "ftp_class";
     public static final String PREFS_IS_SERVER_RUNNING = "isserverrunning";

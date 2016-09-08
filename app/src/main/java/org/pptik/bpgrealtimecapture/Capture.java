@@ -28,7 +28,7 @@ import org.pptik.bpgrealtimecapture.helper.FilesHelper;
 import org.pptik.bpgrealtimecapture.services.SyncService;
 import org.pptik.bpgrealtimecapture.setup.ApplicationConstants;
 
-public class Capture extends Activity implements Runnable{
+public class Capture extends Activity{
     private Camera camera;
     private FilesHelper filesHelper;
     private String TAG = this.getClass().getSimpleName();
@@ -40,6 +40,7 @@ public class Capture extends Activity implements Runnable{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "oncreate twice");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -50,7 +51,14 @@ public class Capture extends Activity implements Runnable{
         }
 
         filesHelper = new FilesHelper();
-        initSurface();
+        if(sharedPreferences.getBoolean(ApplicationConstants.PREFS_SURFACE_IS_INIT, false) == false) {
+            initSurface();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(ApplicationConstants.PREFS_SURFACE_IS_INIT, true);
+            editor.commit();
+        }else {
+          //  finish();
+        }
     }
 
 
@@ -60,16 +68,21 @@ public class Capture extends Activity implements Runnable{
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         surfaceView.getHolder().setFixedSize(176, 144);
-        surfaceView.getHolder().setKeepScreenOn(false);
+    //    surfaceView.getHolder().setKeepScreenOn(false);
         surfaceView.getHolder().addCallback(new SurfaceCallback());
 
 
         //--- BUILD TIMER ---//
         timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Capture.this.run();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        takepicture();
+                    }
+                });
             }
         }, 30000 * 2, 30000 * 2);
     }
@@ -92,7 +105,7 @@ public class Capture extends Activity implements Runnable{
                     filename = System.currentTimeMillis()+".jpg";
                     jpgFile = new File(folder, filename);
                 } else {
-                    // TO-DO: Catch some crash
+                    // TODO : Catch some crash
                 }
 
                 FileOutputStream outStream = new FileOutputStream(jpgFile);
@@ -158,6 +171,7 @@ public class Capture extends Activity implements Runnable{
         stopService(new Intent(Capture.this, SyncService.class));
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(ApplicationConstants.PREFS_IS_SERVER_RUNNING, false);
+        editor.putBoolean(ApplicationConstants.PREFS_SURFACE_IS_INIT, false);
         editor.commit();
     }
 
@@ -167,10 +181,7 @@ public class Capture extends Activity implements Runnable{
         Log.i(TAG, "Screen Off");
     }
 
-    @Override
-    public void run() {
-        takepicture();
-    }
+
 
     private boolean isServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);

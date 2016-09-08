@@ -31,20 +31,17 @@ public class TBFiles {
     }
 
     public void open() {
-        Log.w(TAG, "Open database connection...");
         this.db = dbHelper.getWritableDatabase();
     }
 
     public void close() {
-        Log.w(TAG, "Close database connection...");
         this.dbHelper.close();
     }
 
     public long insert(ContentValues values) {
-        Log.w(TAG, "inserting to table account");
         Long result = db.insert(TABLE_LIST_FILES, null, values);
         if (result != -1) {
-            Log.i(TAG, "inserting to table account succeed");
+
         } else {
             Log.e(TAG, "inserting to table account failed");
         }
